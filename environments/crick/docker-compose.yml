@@ -1,0 +1,40 @@
+services:
+  archival:
+    image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
+    pull_policy: always
+    volumes:
+      - ./archive_policy.yaml:/policy/archive_policy.yaml:ro
+      - ./logs:/app/logs
+      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:/scratch:ro
+      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:/archive
+    environment:
+      - PYTHONPATH=/app
+      - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
+    command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  delete:
+    image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
+    pull_policy: always
+    entrypoint: ["python", "-m", "engine.delete_run"]
+    volumes:
+      - ./delete_policy.yaml:/policy/delete_policy.yaml:ro
+      - ./logs:/app/logs
+      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:/scratch
+    environment:
+      - PYTHONPATH=/app
+      - DELETE_POLICY_PATH=/policy/delete_policy.yaml
+    command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  visibility:
+    image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
+    pull_policy: always
+    entrypoint: ["python", "-m", "visibility.api"]
+    volumes:
+      - ./logs:/app/logs:ro
+    environment:
+      - PYTHONPATH=/app
+      - SERVER_NAME=${SERVER_NAME:-}
+    command: ["--port", "8080", "--log-dir", "/app/logs"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

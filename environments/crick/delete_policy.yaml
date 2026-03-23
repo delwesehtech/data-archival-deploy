@@ -1,0 +1,26 @@
+version: "1.0"
+
+delete_scope: ngs_intermediate_scratch
+days_before_delete: 10
+
+paths:
+  - "/scratch"
+
+file_patterns:
+  include:
+    - "*.bam"
+    - "*.bam.gz"
+    - "*.bai"
+    - "*.bai.gz"
+    - "*.sam"
+    - "*.sam.gz"
+    - "*.fastq"
+    - "*.fastq.gz"
+    - "*.vdjca"
+    - "*trim*.clc"
+  exclude: []
+
+exclusions:
+  always_exclude_paths: []
+  critical_folders: []
+  per_dataset_hold: []
