@@ -18,6 +18,8 @@ This publishes two tags:
 cd ~/code/data-archival-deploy/environments/crick
 cp .env.example .env
 # set IMAGE_NAME and IMAGE_TAG=<git-sha>
+# From registry: docker login … then PULL_IMAGE=1 ./deploy.sh
+# Local image only: build/tag first, then ./deploy.sh (no pull)
 ./deploy.sh
 ```
 

@@ -1,7 +1,9 @@
+# pull_policy: missing — use local image or pull once from registry after docker login.
+# (always would try Docker Hub for bare image names and fail.)
 services:
   archival:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
-    pull_policy: always
+    pull_policy: missing
     volumes:
       - ./archive_policy.yaml:/policy/archive_policy.yaml:ro
       - ./logs:/app/logs
@@ -12,22 +14,22 @@ services:
       - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
-  delete:
+  cleanup:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
-    pull_policy: always
+    pull_policy: missing
     entrypoint: ["python", "-m", "engine.delete_run"]
     volumes:
-      - ./delete_policy.yaml:/policy/delete_policy.yaml:ro
+      - ./cleanup_policy.yaml:/policy/cleanup_policy.yaml:ro
       - ./logs:/app/logs
       - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:/scratch
     environment:
       - PYTHONPATH=/app
-      - DELETE_POLICY_PATH=/policy/delete_policy.yaml
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy.yaml
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
   visibility:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
-    pull_policy: always
+    pull_policy: missing
     entrypoint: ["python", "-m", "visibility.api"]
     volumes:
       - ./logs:/app/logs:ro

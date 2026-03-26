@@ -3,7 +3,7 @@
 This folder is self-contained for one server:
 - `docker-compose.yml`
 - `archive_policy.yaml`
-- `delete_policy.yaml`
+- `cleanup_policy.yaml`
 - `.env`
 
 ## 1) Configure
@@ -30,11 +30,11 @@ Set:
 ```bash
 # dry-runs
 docker compose run --rm archival
-docker compose run --rm delete
+docker compose run --rm cleanup
 
 # execute
 docker compose run --rm archival --execute --log-dir /app/logs
-docker compose run --rm delete --execute --log-dir /app/logs
+docker compose run --rm cleanup --execute --log-dir /app/logs
 ```
 
 ## 4) Rollback

@@ -9,8 +9,13 @@ if [[ ! -f ".env" ]]; then
   exit 1
 fi
 
-echo "Pulling ${IMAGE_NAME:-<unset>}:${IMAGE_TAG:-<unset>} and recreating services..."
-docker compose pull
+# Set PULL_IMAGE=1 after docker login when IMAGE_NAME is a registry path (e.g. ghcr.io/org/data-archival).
+# Omit pull for locally tagged images (data-archival:latest) or compose will error on Docker Hub.
+if [[ "${PULL_IMAGE:-0}" == "1" ]]; then
+  echo "Pulling ${IMAGE_NAME:-<unset>}:${IMAGE_TAG:-<unset>} ..."
+  docker compose pull
+fi
+echo "Starting services (${IMAGE_NAME:-<unset>}:${IMAGE_TAG:-<unset>})..."
 docker compose up -d --force-recreate
 
 echo "Deployment complete."
