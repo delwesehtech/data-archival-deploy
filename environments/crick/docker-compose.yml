@@ -14,7 +14,7 @@ services:
       - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
-  cleanup:
+  cleanup_local:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
     pull_policy: missing
     entrypoint: ["python", "-m", "engine.delete_run"]
@@ -25,7 +25,22 @@ services:
     environment:
       - PYTHONPATH=/app
       - CLEANUP_POLICY_PATH=/policy/cleanup_policy.yaml
+      - CLEANUP_OPERATION=cleanup_local
     command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  cleanup_archive:
+    image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
+    pull_policy: missing
+    entrypoint: ["python", "-m", "engine.delete_run"]
+    volumes:
+      - ./cleanup_policy.yaml:/policy/cleanup_policy.yaml:ro
+      - ./logs:/app/logs
+      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:/archive
+    environment:
+      - PYTHONPATH=/app
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy.yaml
+      - CLEANUP_OPERATION=cleanup_archive
+    command: ["--dry-run", "--root", "/archive", "--log-dir", "/app/logs"]
 
   visibility:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
@@ -36,6 +51,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - SERVER_NAME=${SERVER_NAME:-}
+      - SCRATCH_PATH=${SCRATCH_PATH:-}
+      - ARCHIVE_PATH=${ARCHIVE_PATH:-}
     command: ["--port", "8080", "--log-dir", "/app/logs"]
     ports:
       - "8080:8080"

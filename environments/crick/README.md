@@ -30,11 +30,13 @@ Set:
 ```bash
 # dry-runs
 docker compose run --rm archival
-docker compose run --rm cleanup
+docker compose run --rm cleanup_local
+docker compose run --rm cleanup_archive
 
 # execute
 docker compose run --rm archival --execute --log-dir /app/logs
-docker compose run --rm cleanup --execute --log-dir /app/logs
+docker compose run --rm cleanup_local --execute --log-dir /app/logs
+docker compose run --rm cleanup_archive --execute --root /archive --log-dir /app/logs
 ```
 
 ## 4) Rollback
