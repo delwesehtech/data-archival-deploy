@@ -134,7 +134,8 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments & deploy secrets
+# Ignores every file named `.env` (any directory). `.env.example` is not ignored.
 .env
 logs/
 .envrc
