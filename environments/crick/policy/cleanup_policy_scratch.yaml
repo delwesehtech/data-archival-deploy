@@ -1,6 +1,6 @@
 version: "1.0"
 
-# Paths should live under LOCAL_SCRATCH_PATH from .env (same path on host and in container).
+# Paths must exist inside the container; with 1:1 mounts they match SCRATCH_PATH in .env (see .env.example).
 delete_scope: cleanup_scratch
 days_before_delete: 2
 

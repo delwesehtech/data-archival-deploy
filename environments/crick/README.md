@@ -2,9 +2,11 @@
 
 This folder is self-contained for one server. Each host runs **three separate operations**:
 
-1. **Cleanup scratch** — `cleanup_scratch` (policy: `policy/cleanup_policy_scratch.yaml`, mount: `LOCAL_SCRATCH_PATH`)
-2. **Cleanup archive drive** — `cleanup_archive_drive` (policy: `policy/cleanup_policy_archive_drive.yaml`, mount: `ARCHIVE_DRIVE_PATH`)
+1. **Cleanup scratch** — `cleanup_scratch` (policy: `policy/cleanup_policy_scratch.yaml`)
+2. **Cleanup archive drive** — `cleanup_archive_drive` (policy: `policy/cleanup_policy_archive_drive.yaml`)
 3. **Data archival** — `archival` (policy: `policy/archive_policy.yaml`, scratch → archive drive; not a delete/cleanup job)
+
+Compose bind-mounts `SCRATCH_PATH` and `ARCHIVE_PATH` at the same path in the container. Paths in `policy/*.yaml` must match your machine (see `.env.example` for a `/tmp/...` layout).
 
 Files:
 - `docker-compose.yml`
@@ -22,8 +24,8 @@ cp .env.example .env
 Set:
 - `IMAGE_NAME` (registry image, e.g. `ghcr.io/acme/data-archival`)
 - `IMAGE_TAG` (immutable git SHA tag)
-- `LOCAL_SCRATCH_PATH`
-- `ARCHIVE_DRIVE_PATH`
+- `SCRATCH_PATH`
+- `ARCHIVE_PATH`
 - `SERVER_NAME`
 
 ## 2) Deploy

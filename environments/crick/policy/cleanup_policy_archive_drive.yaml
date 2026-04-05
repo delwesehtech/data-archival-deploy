@@ -1,9 +1,9 @@
 version: "1.0"
 
 delete_scope: cleanup_archive_drive
-days_before_delete: 180
+days_before_delete: 10
 
-# Paths must live under ARCHIVE_DRIVE_PATH from .env (same path on host and in container).
+# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see .env.example).
 paths:
   - "/tmp/wgbs_global2/crick"
 

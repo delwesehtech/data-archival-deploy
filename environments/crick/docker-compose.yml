@@ -2,9 +2,12 @@
 # (always would try Docker Hub for bare image names and fail.)
 #
 # Three operations per server (separate compose services / policies):
-#   1) cleanup_scratch    — delete old files on scratch (LOCAL_SCRATCH_PATH)
-#   2) cleanup_archive_drive — delete old files on archive drive (ARCHIVE_DRIVE_PATH)
+#   1) cleanup_scratch    — delete old files on scratch (SCRATCH_PATH)
+#   2) cleanup_archive_drive — delete old files on archive drive (ARCHIVE_PATH)
 #   3) archival           — copy/move data for scratch → archive drive (policy/archive_policy.yaml)
+#
+# Bind mounts use the same path on host and in the container (SCRATCH_PATH, ARCHIVE_PATH in .env).
+# Policy paths must match those locations.
 services:
   archival:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
@@ -12,8 +15,8 @@ services:
     volumes:
       - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:ro
-      - ${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}:${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}
+      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:${SCRATCH_PATH:?set SCRATCH_PATH in .env}:ro
+      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}
     environment:
       - PYTHONPATH=/app
       - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
@@ -26,7 +29,7 @@ services:
     volumes:
       - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}
+      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:${SCRATCH_PATH:?set SCRATCH_PATH in .env}
     environment:
       - PYTHONPATH=/app
       - CLEANUP_POLICY_PATH=/policy/cleanup_policy_scratch.yaml
@@ -40,7 +43,7 @@ services:
     volumes:
       - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}:${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}
+      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}
     environment:
       - PYTHONPATH=/app
       - CLEANUP_POLICY_PATH=/policy/cleanup_policy_archive_drive.yaml
@@ -56,8 +59,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - SERVER_NAME=${SERVER_NAME:-}
-      - SCRATCH_PATH=${LOCAL_SCRATCH_PATH:-}
-      - ARCHIVE_PATH=${ARCHIVE_DRIVE_PATH:-}
+      - SCRATCH_PATH=${SCRATCH_PATH:-}
+      - ARCHIVE_PATH=${ARCHIVE_PATH:-}
     command: ["--port", "8080", "--log-dir", "/app/logs"]
     ports:
       - "8080:8080"
