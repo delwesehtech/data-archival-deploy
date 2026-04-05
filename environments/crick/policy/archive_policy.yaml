@@ -10,8 +10,8 @@ data_scope:
   local_scratch:
     type: local_scratch
     hosts: [crick]
-    paths: ["/scratch/project_alpha"]
-    archive_path: "/archive"
+    paths: ["/tmp/wgbs/crick"]
+    archive_path: "/tmp/wgbs_global2/crick"
     file_patterns:
       include:
         - "*.tiff"

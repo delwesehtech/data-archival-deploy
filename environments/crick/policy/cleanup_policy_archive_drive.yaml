@@ -1,10 +1,11 @@
 version: "1.0"
 
-delete_scope: ngs_intermediate_scratch
+delete_scope: cleanup_archive
 days_before_delete: 10
 
+# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see .env.example).
 paths:
-  - "/scratch"
+  - "/tmp/wgbs_global2/crick"
 
 file_patterns:
   include:
@@ -24,4 +25,3 @@ exclusions:
   always_exclude_paths: []
   critical_folders: []
   per_dataset_hold: []
-
