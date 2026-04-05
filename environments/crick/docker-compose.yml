@@ -1,46 +1,51 @@
 # pull_policy: missing — use local image or pull once from registry after docker login.
 # (always would try Docker Hub for bare image names and fail.)
+#
+# Three operations per server (separate compose services / policies):
+#   1) cleanup_scratch    — delete old files on scratch (LOCAL_SCRATCH_PATH)
+#   2) cleanup_archive_drive — delete old files on archive drive (ARCHIVE_DRIVE_PATH)
+#   3) archival           — copy/move data for scratch → archive drive (policy/archive_policy.yaml)
 services:
   archival:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
     pull_policy: missing
     volumes:
-      - ./archive_policy.yaml:/policy/archive_policy.yaml:ro
+      - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:/scratch:ro
-      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:/archive
+      - ${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:ro
+      - ${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}:${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}
     environment:
       - PYTHONPATH=/app
       - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
-  cleanup_local:
+  cleanup_scratch:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
     pull_policy: missing
     entrypoint: ["python", "-m", "engine.delete_run"]
     volumes:
-      - ./cleanup_policy.yaml:/policy/cleanup_policy.yaml:ro
+      - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${SCRATCH_PATH:?set SCRATCH_PATH in .env}:/scratch
+      - ${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}:${LOCAL_SCRATCH_PATH:?set LOCAL_SCRATCH_PATH in .env}
     environment:
       - PYTHONPATH=/app
-      - CLEANUP_POLICY_PATH=/policy/cleanup_policy.yaml
-      - CLEANUP_OPERATION=cleanup_local
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy_scratch.yaml
+      - CLEANUP_OPERATION=cleanup_scratch
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
-  cleanup_archive:
+  cleanup_archive_drive:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
     pull_policy: missing
     entrypoint: ["python", "-m", "engine.delete_run"]
     volumes:
-      - ./cleanup_policy.yaml:/policy/cleanup_policy.yaml:ro
+      - ./policy:/policy:ro
       - ./logs:/app/logs
-      - ${ARCHIVE_PATH:?set ARCHIVE_PATH in .env}:/archive
+      - ${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}:${ARCHIVE_DRIVE_PATH:?set ARCHIVE_DRIVE_PATH in .env}
     environment:
       - PYTHONPATH=/app
-      - CLEANUP_POLICY_PATH=/policy/cleanup_policy.yaml
-      - CLEANUP_OPERATION=cleanup_archive
-    command: ["--dry-run", "--root", "/archive", "--log-dir", "/app/logs"]
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy_archive_drive.yaml
+      - CLEANUP_OPERATION=cleanup_archive_drive
+    command: ["--dry-run", "--log-dir", "/app/logs"]
 
   visibility:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
@@ -51,8 +56,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - SERVER_NAME=${SERVER_NAME:-}
-      - SCRATCH_PATH=${SCRATCH_PATH:-}
-      - ARCHIVE_PATH=${ARCHIVE_PATH:-}
+      - SCRATCH_PATH=${LOCAL_SCRATCH_PATH:-}
+      - ARCHIVE_PATH=${ARCHIVE_DRIVE_PATH:-}
     command: ["--port", "8080", "--log-dir", "/app/logs"]
     ports:
       - "8080:8080"

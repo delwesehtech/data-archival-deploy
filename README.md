@@ -4,8 +4,7 @@ Config-only deployment repo for `data-archival`.
 
 This repo intentionally keeps only:
 - per-server `docker-compose.yml`
-- `archive_policy.yaml`
-- `delete_policy.yaml`
+- `policy/` (YAML policies mounted at `/policy` in containers)
 - `.env` templates
 - small deploy helper scripts
 
@@ -23,6 +22,10 @@ Application code and image build logic stay in the `data-archival` repo.
    - `...:latest`
 2. Update `IMAGE_TAG=<git-sha>` in target environment `.env`.
 3. Run deploy script on the server from that environment folder.
+
+## Local helpers (`aliases.sh`)
+
+From the repo root, run **`./aliases.sh`** (executable). That starts an interactive **bash** with helpers loaded; type **`avd_help`** for the list. Type **`exit`** to leave that shell. To load into your **current** shell instead: `source ./aliases.sh`.
 
 ## Quick start (crick)
 
