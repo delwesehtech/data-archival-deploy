@@ -27,6 +27,7 @@ Set:
 - `SCRATCH_PATH`
 - `ARCHIVE_PATH`
 - `SERVER_NAME`
+- `CLIENT_NAME` (title in the visibility UI)
 
 ## 2) Deploy
 
