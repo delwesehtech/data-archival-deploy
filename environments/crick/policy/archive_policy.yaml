@@ -1,0 +1,42 @@
+# Archival policy (crick)
+version: "1.0"
+
+retention_defaults:
+  days_on_scratch: 180
+  days_on_local_archive: 365
+  days_on_cloud_archive: null
+
+data_scope:
+  local_scratch:
+    type: local_scratch
+    hosts: [crick]
+    paths: ["/scratch/project_alpha"]
+    archive_path: "/archive"
+    file_patterns:
+      include:
+        - "*.tiff"
+        - "*.bcl"
+        - "*.fastq"
+        - "*.fastq.gz"
+        - "*.fast5"
+        - "*.pod5"
+        - "*.clc"
+        - "*.bam"
+        - "*.bai"
+        - "*.sam"
+        - "*.vdjca"
+        - "*.gz"
+        - "*.bgzf"
+      exclude:
+        - "*.xlsx"
+        - "*.csv"
+        - "*.pdf"
+        - "*.html"
+        - "*.rds"
+        - "*.rda"
+        - "*.RData"
+
+exclusions:
+  always_exclude_paths: []
+  critical_folders: []
+  per_dataset_hold: []

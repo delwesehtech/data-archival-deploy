@@ -1,0 +1,27 @@
+version: "1.0"
+
+delete_scope: cleanup_archive_drive
+days_before_delete: 180
+
+# Paths must live under ARCHIVE_DRIVE_PATH from .env (same path on host and in container).
+paths:
+  - "/tmp/wgbs_global2/crick"
+
+file_patterns:
+  include:
+    - "*.bam"
+    - "*.bam.gz"
+    - "*.bai"
+    - "*.bai.gz"
+    - "*.sam"
+    - "*.sam.gz"
+    - "*.fastq"
+    - "*.fastq.gz"
+    - "*.vdjca"
+    - "*trim*.clc"
+  exclude: []
+
+exclusions:
+  always_exclude_paths: []
+  critical_folders: []
+  per_dataset_hold: []
