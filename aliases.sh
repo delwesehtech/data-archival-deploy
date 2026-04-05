@@ -56,6 +56,7 @@ data-archival-deploy — crick helpers (compose in environments/crick)
   cleanup_archive       Dry-run archive cleanup (compose service: cleanup_archive).
   restart_visibility    Recreate the visibility container only (pick up new image / UI).
   rm_exited_cleanup     Remove exited containers only for environments/crick (uses docker compose ps — not other Docker projects).
+  delete_log_files      Remove cleanup audit files: delete_log_files scratch | archive | all (under environments/crick/logs).
 
   Real deletes (run manually from environments/crick):
     docker compose run --rm cleanup_scratch --execute --log-dir /app/logs
@@ -96,4 +97,32 @@ rm_exited_cleanup() {
 # Recreate only visibility (new image / HTML); leaves other services running
 restart_visibility() {
   (cd "${_AVD_CRICK}" && docker compose up -d --force-recreate visibility)
+}
+
+# Remove delete-job artifacts for scratch or archive cleanup (audit dirs + last_delete_scan_*.json).
+# Does not remove archival workflow logs (e.g. audit/archival_*.jsonl, last_scan.json).
+delete_log_files() {
+  local role="${1:-}"
+  local base="${_AVD_CRICK}/logs"
+  case "${role}" in
+    scratch)
+      rm -rf "${base}/audit/cleanup_scratch"
+      rm -f "${base}/last_delete_scan_cleanup_scratch.json"
+      echo "Removed scratch cleanup logs under ${base}."
+      ;;
+    archive)
+      rm -rf "${base}/audit/cleanup_archive"
+      rm -f "${base}/last_delete_scan_cleanup_archive.json"
+      echo "Removed archive cleanup logs under ${base}."
+      ;;
+    all)
+      rm -rf "${base}/audit/cleanup_scratch" "${base}/audit/cleanup_archive"
+      rm -f "${base}/last_delete_scan_cleanup_scratch.json" "${base}/last_delete_scan_cleanup_archive.json"
+      echo "Removed scratch and archive cleanup logs under ${base}."
+      ;;
+    *)
+      echo "Usage: delete_log_files scratch|archive|all" >&2
+      return 1
+      ;;
+  esac
 }
