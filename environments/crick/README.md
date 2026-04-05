@@ -30,9 +30,14 @@ Set:
 
 ## 2) Deploy
 
+From `environments/crick` (after `.env` is set and the image is available locally or in a registry):
+
 ```bash
-./deploy.sh
+docker compose pull   # optional; when IMAGE_* points at a registry
+docker compose up -d visibility
 ```
+
+Run cleanup and archival jobs with `docker compose run --rm …` as below (they are not long-running services in this compose file).
 
 ## 3) Run jobs
 
@@ -50,8 +55,8 @@ docker compose run --rm cleanup_archive --execute --log-dir /app/logs
 
 ## 4) Rollback
 
-```bash
-./rollback.sh <previous_git_sha_tag>
-```
+Set `IMAGE_TAG` in `.env` to the previous immutable image tag (or digest), then recreate containers, for example:
 
-The rollback is deterministic because images are pinned by immutable SHA tags.
+```bash
+docker compose up -d --force-recreate visibility
+```

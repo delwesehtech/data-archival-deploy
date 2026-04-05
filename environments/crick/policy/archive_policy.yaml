@@ -11,7 +11,7 @@ data_scope:
     type: local_scratch
     hosts: [crick]
     paths: ["/tmp/wgbs/crick"]
-    archive_path: "/tmp/wgbs_global_2/crick"
+    archive_path: "/tmp/wgbs_global2/crick"
     file_patterns:
       include:
         - "*.tiff"
