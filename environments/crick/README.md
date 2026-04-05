@@ -3,7 +3,7 @@
 This folder is self-contained for one server. Each host runs **three separate operations**:
 
 1. **Cleanup scratch** — `cleanup_scratch` (policy: `policy/cleanup_policy_scratch.yaml`)
-2. **Cleanup archive drive** — `cleanup_archive_drive` (policy: `policy/cleanup_policy_archive_drive.yaml`)
+2. **Cleanup archive** — `cleanup_archive` (policy: `policy/cleanup_policy_archive_drive.yaml`)
 3. **Data archival** — `archival` (policy: `policy/archive_policy.yaml`, scratch → archive drive; not a delete/cleanup job)
 
 Compose bind-mounts `SCRATCH_PATH` and `ARCHIVE_PATH` at the same path in the container. Paths in `policy/*.yaml` must match your machine (see `.env.example` for a `/tmp/...` layout).
@@ -40,12 +40,12 @@ Set:
 # dry-runs
 docker compose run --rm archival
 docker compose run --rm cleanup_scratch
-docker compose run --rm cleanup_archive_drive
+docker compose run --rm cleanup_archive
 
 # execute
 docker compose run --rm archival --execute --log-dir /app/logs
 docker compose run --rm cleanup_scratch --execute --log-dir /app/logs
-docker compose run --rm cleanup_archive_drive --execute --log-dir /app/logs
+docker compose run --rm cleanup_archive --execute --log-dir /app/logs
 ```
 
 ## 4) Rollback

@@ -3,7 +3,7 @@
 #
 # Three operations per server (separate compose services / policies):
 #   1) cleanup_scratch    — delete old files on scratch (SCRATCH_PATH)
-#   2) cleanup_archive_drive — delete old files on archive drive (ARCHIVE_PATH)
+#   2) cleanup_archive — delete old files on archive drive (ARCHIVE_PATH)
 #   3) archival           — copy/move data for scratch → archive drive (policy/archive_policy.yaml)
 #
 # Bind mounts use the same path on host and in the container (SCRATCH_PATH, ARCHIVE_PATH in .env).
@@ -36,7 +36,7 @@ services:
       - CLEANUP_OPERATION=cleanup_scratch
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
-  cleanup_archive_drive:
+  cleanup_archive:
     image: ${IMAGE_NAME:?set IMAGE_NAME in .env}:${IMAGE_TAG:?set IMAGE_TAG in .env}
     pull_policy: missing
     entrypoint: ["python", "-m", "engine.delete_run"]
@@ -47,7 +47,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - CLEANUP_POLICY_PATH=/policy/cleanup_policy_archive_drive.yaml
-      - CLEANUP_OPERATION=cleanup_archive_drive
+      - CLEANUP_OPERATION=cleanup_archive
     command: ["--dry-run", "--log-dir", "/app/logs"]
 
   visibility:

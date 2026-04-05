@@ -1,6 +1,6 @@
 version: "1.0"
 
-delete_scope: cleanup_archive_drive
+delete_scope: cleanup_archive
 days_before_delete: 10
 
 # Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see .env.example).

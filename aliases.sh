@@ -53,13 +53,13 @@ avd_help() {
 data-archival-deploy — crick helpers (compose in environments/crick)
 
   cleanup_scratch       Dry-run scratch cleanup (compose default). Writes logs under environments/crick/logs/.
-  cleanup_archive       Dry-run archive-drive cleanup (service: cleanup_archive_drive).
+  cleanup_archive       Dry-run archive cleanup (compose service: cleanup_archive).
   restart_visibility    Recreate the visibility container only (pick up new image / UI).
   rm_exited_cleanup     Remove exited containers only for environments/crick (uses docker compose ps — not other Docker projects).
 
   Real deletes (run manually from environments/crick):
     docker compose run --rm cleanup_scratch --execute --log-dir /app/logs
-    docker compose run --rm cleanup_archive_drive --execute --log-dir /app/logs
+    docker compose run --rm cleanup_archive --execute --log-dir /app/logs
 
   avd_help              Show this list.
 EOF
@@ -71,7 +71,7 @@ cleanup_scratch() {
 }
 
 cleanup_archive() {
-  (cd "${_AVD_CRICK}" && docker compose run --rm cleanup_archive_drive)
+  (cd "${_AVD_CRICK}" && docker compose run --rm cleanup_archive)
 }
 
 # Remove exited containers only for this compose app (environments/crick).
