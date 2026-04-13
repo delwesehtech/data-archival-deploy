@@ -2,10 +2,10 @@ version: "1.0"
 
 # Paths must exist inside the container; with 1:1 mounts they match SCRATCH_PATH in .env (see .env.example).
 delete_scope: cleanup_scratch
-days_before_delete: 2
+days_before_delete: 60
 
 paths:
-  - "/tmp/wgbs/crick"
+  - "/wgbs/scratch/kpadmanabhan"
 
 file_patterns:
   include:
@@ -16,7 +16,7 @@ file_patterns:
     - "*.sam"
     - "*.sam.gz"
     - "*.fastq"
-    - "*.fastq.gz"
+    #- "*.fastq.gz" this is excluded temporarily . reauested by user
     - "*.vdjca"
     - "*trim*.clc"
   exclude: []
