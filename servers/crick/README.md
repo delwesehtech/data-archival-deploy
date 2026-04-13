@@ -27,10 +27,11 @@ Set:
 - `SCRATCH_PATH`
 - `ARCHIVE_PATH`
 - `SERVER_NAME`
+- `CLIENT_NAME` (title in the visibility UI)
 
 ## 2) Deploy
 
-From `environments/crick` (after `.env` is set and the image is available locally or in a registry):
+From `servers/crick` (after `.env` is set and the image is available locally or in a registry):
 
 ```bash
 docker compose pull   # optional; when IMAGE_* points at a registry

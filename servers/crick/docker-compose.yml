@@ -59,6 +59,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - SERVER_NAME=${SERVER_NAME:-}
+      - CLIENT_NAME=${CLIENT_NAME:-}
       - SCRATCH_PATH=${SCRATCH_PATH:-}
       - ARCHIVE_PATH=${ARCHIVE_PATH:-}
     command: ["--port", "8080", "--log-dir", "/app/logs"]
