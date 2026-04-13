@@ -31,7 +31,7 @@ Set:
 
 ## 2) Deploy
 
-From `environments/crick` (after `.env` is set and the image is available locally or in a registry):
+From `servers/crick` (after `.env` is set and the image is available locally or in a registry):
 
 ```bash
 docker compose pull   # optional; when IMAGE_* points at a registry

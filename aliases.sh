@@ -9,7 +9,7 @@
 #
 # Zsh: prefer running ./aliases.sh (bash subshell), or: source .../aliases.sh
 
-# Absolute directory containing this script (works even if cwd is e.g. environments/crick).
+# Absolute directory containing this script (works even if cwd is e.g. servers/crick).
 _avd_script_dir() {
   local f="${1}"
   local d
@@ -46,19 +46,19 @@ if [[ -z "${DATA_ARCHIVAL_DEPLOY:-}" ]]; then
   echo "aliases.sh: set DATA_ARCHIVAL_DEPLOY to the data-archival-deploy repo root, or source from bash." >&2
   return 1 2>/dev/null || exit 1
 fi
-_AVD_CRICK="${DATA_ARCHIVAL_DEPLOY}/environments/crick"
+_AVD_CRICK="${DATA_ARCHIVAL_DEPLOY}/servers/crick"
 
 avd_help() {
   cat <<'EOF'
-data-archival-deploy — crick helpers (compose in environments/crick)
+data-archival-deploy — crick helpers (compose in servers/crick)
 
-  cleanup_scratch       Dry-run scratch cleanup (compose default). Writes logs under environments/crick/logs/.
+  cleanup_scratch       Dry-run scratch cleanup (compose default). Writes logs under servers/crick/logs/.
   cleanup_archive       Dry-run archive cleanup (compose service: cleanup_archive).
   restart_visibility    Recreate the visibility container only (pick up new image / UI).
-  rm_exited_cleanup     Remove exited containers only for environments/crick (uses docker compose ps — not other Docker projects).
-  delete_log_files      Remove cleanup audit files: delete_log_files scratch | archive | all (under environments/crick/logs).
+  rm_exited_cleanup     Remove exited containers only for servers/crick (uses docker compose ps — not other Docker projects).
+  delete_log_files      Remove cleanup audit files: delete_log_files scratch | archive | all (under servers/crick/logs).
 
-  Real deletes (run manually from environments/crick):
+  Real deletes (run manually from servers/crick):
     docker compose run --rm cleanup_scratch --execute --log-dir /app/logs
     docker compose run --rm cleanup_archive --execute --log-dir /app/logs
 
@@ -75,7 +75,7 @@ cleanup_archive() {
   (cd "${_AVD_CRICK}" && docker compose run --rm cleanup_archive)
 }
 
-# Remove exited containers only for this compose app (environments/crick).
+# Remove exited containers only for this compose app (servers/crick).
 # Uses `docker compose ps` so Docker itself decides project membership — never touches other projects.
 rm_exited_cleanup() {
   (
