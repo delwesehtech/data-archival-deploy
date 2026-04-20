@@ -1,0 +1,31 @@
+version: "1.0"
+
+delete_scope: cleanup_archive
+days_before_delete: 180
+
+# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see repo .env.example).
+paths:
+  - "/wgbs_global2/watson1"
+
+file_patterns:
+  include:
+    - "*.bam"
+    - "*.bam.gz"
+    - "*.bai"
+    - "*.bai.gz"
+    - "*.sam"
+    - "*.sam.gz"
+    - "*.fastq"
+    - "*.fastq.gz"
+    - "*.vdjca"
+    - "*trim*.clc"
+  exclude: []
+
+# Exclusions: same semantics as archive_policy (see data-archival config/schema.yaml).
+exclusions:
+  # Full roots never touched by cleanup. Do not duplicate paths in critical_folders.
+  always_exclude_paths: []
+  # Critical folder names or path segments under scan roots; prefer always_exclude_paths for whole excluded trees.
+  critical_folders: []
+  # Director-approved holds (dataset id or path substring).
+  per_dataset_hold: []

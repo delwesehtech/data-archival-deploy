@@ -1,0 +1,31 @@
+version: "1.0"
+
+# Paths must exist inside the container; with 1:1 mounts they match SCRATCH_PATH in .env (see .env.example).
+delete_scope: cleanup_scratch
+days_before_delete: 60
+
+paths:
+  - "wgbs/scratch2/kpadmanabhan"
+
+file_patterns:
+  include:
+    - "*.bam"
+    - "*.bam.gz"
+    - "*.bai"
+    - "*.bai.gz"
+    - "*.sam"
+    - "*.sam.gz"
+    - "*.fastq"
+    #- "*.fastq.gz" this is excluded temporarily . reauested by user
+    - "*.vdjca"
+    - "*trim*.clc"
+  exclude: []
+
+# Exclusions: same semantics as archive_policy (see data-archival config/schema.yaml).
+exclusions:
+  # Full roots never touched by cleanup. Do not duplicate paths in critical_folders.
+  always_exclude_paths: []
+  # Critical folder names or path segments under scan roots; prefer always_exclude_paths for whole excluded trees.
+  critical_folders: []
+  # Director-approved holds (dataset id or path substring).
+  per_dataset_hold: []
