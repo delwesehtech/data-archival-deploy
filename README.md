@@ -3,26 +3,29 @@
 Config-only deployment repo for `data-archival`.
 
 This repo intentionally keeps only:
-- per-server `docker-compose.yml`
-- `policy/` (YAML policies mounted at `/policy` in containers)
-- `.env` templates
-- small deploy helper scripts
+- one **shared** `docker-compose.yml` at the repo root (same stack for every server)
+- a single **`.env`** at the repo root next to Compose (gitignored; copy from `.env.example`) — set `SERVER_DEPLOY_DIR` to point at the active server folder
+- per-server folders under `servers/<name>/` with **`policy/`** and **`logs/`** only
+- `.env.example` next to `docker-compose.yml` (tracked template for `.env`)
+- small deploy helper scripts (`aliases.sh`)
 - root `VERSION` (last released deploy tag; used by `scripts/tag-and-push.sh`)
 
 Application code and image build logic stay in the `data-archival` repo.
 
 ## Layout
 
-- `servers/crick/` - first server deployment config
-- `servers/<server>/` - clone from `crick` for each additional server
+- `docker-compose.yml` — shared services (`archival`, `cleanup_scratch`, `cleanup_archive`, `visibility`)
+- `.env` (repo root, not tracked) — `SERVER_DEPLOY_DIR`, `COMPOSE_PROJECT_NAME`, image tag, bind-mount paths, UI labels
+- `servers/crick/` — example server: `policy/`, `logs/`
+- `servers/<server>/` — add a folder per host; point root `.env` at it via `SERVER_DEPLOY_DIR`
 
 ## Deploy model
 
 1. Build and push image from `data-archival` tagged as:
    - `...:<git-sha>`
    - `...:latest`
-2. Update `IMAGE_TAG=<git-sha>` in target environment `.env`.
-3. Run deploy script on the server from that environment folder.
+2. Update `IMAGE_TAG=<git-sha>` in the repo root `.env` on that host.
+3. On the server, from this **repo root**, run Compose (see Quick start).
 
 ## Release tags (main only)
 
@@ -45,20 +48,23 @@ If your last git tag is already ahead of **`VERSION`**, edit **`VERSION`** to ma
 
 From the repo root, run **`./aliases.sh`** (executable). That starts an interactive **bash** with helpers loaded; type **`avd_help`** for the list. Type **`exit`** to leave that shell. To load into your **current** shell instead: `source ./aliases.sh`.
 
-## Quick start (crick)
+## Quick start
 
 ```bash
-cd servers/crick
+cd data-archival-deploy
 cp .env.example .env
-# edit .env (paths + IMAGE_NAME + IMAGE_TAG + SERVER_NAME)
-./deploy.sh
+# edit .env: SERVER_DEPLOY_DIR (e.g. servers/crick), COMPOSE_PROJECT_NAME, paths, IMAGE_*, SERVER_NAME, …
+docker compose --env-file .env -f docker-compose.yml up -d visibility
 ```
+
+To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, paths, and labels) in `.env`, then run Compose again from the repo root.
+
+Use `./aliases.sh` from the repo root for shortcuts (`restart_visibility`, dry-run cleanup, etc.).
 
 ## Rollback
 
-```bash
-cd servers/crick
-IMAGE_TAG=<older_sha> ./rollback.sh
-```
+Edit `.env` and set `IMAGE_TAG` to an older SHA, then from the repo root:
 
-Or edit `.env` and set `IMAGE_TAG` to an older SHA, then run `./deploy.sh`.
+```bash
+docker compose --env-file .env -f docker-compose.yml up -d --force-recreate visibility
+```

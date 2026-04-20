@@ -1,0 +1,106 @@
+# Shared stack for every server — each host keeps policy/ and logs/ under servers/<name>/ only.
+# Run from the repository root with a single .env next to this file (gitignored; copy from .env.example):
+#   docker compose --env-file .env -f docker-compose.yml up -d visibility
+#
+# Required in .env:
+#   SERVER_DEPLOY_DIR   — which server folder to use: repo-relative (servers/crick, servers/dev, …)
+#                         or an absolute path on the host; binds that folder's policy/ and logs/
+#   COMPOSE_PROJECT_NAME — unique project name on this machine (e.g. data-archival-crick)
+#
+# Three operations per server (separate compose services / policies):
+#   1) cleanup_scratch   — delete old files on scratch (SCRATCH_PATH)
+#   2) cleanup_archive   — delete old files on archive drive (ARCHIVE_PATH)
+#   3) archival          — copy/move data for scratch → archive drive (policy/archive_policy.yaml)
+#
+# Bind mounts use the same path on host and in the container (SCRATCH_PATH, ARCHIVE_PATH in .env).
+# Policy paths must match those locations.
+#
+# Platform: default linux/amd64 (servers). Apple Silicon + aliases.sh: linux/arm64 auto-exported when
+# COMPOSE_DOCKER_PLATFORM is unset in .env. Bare `docker compose` on Mac keeps this default (emulated amd64).
+# Override anywhere: COMPOSE_DOCKER_PLATFORM=linux/arm64|linux/amd64 in .env or the shell.
+# Pull: default missing (pull if image absent). For a local-only tag (IMAGE_NAME without registry), set:
+#   COMPOSE_PULL_POLICY=never
+services:
+  archival:
+    image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
+    platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
+    pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    volumes:
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
+        target: /policy
+        read_only: true
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
+        target: /app/logs
+      - ${SCRATCH_PATH:?SCRATCH_PATH}:${SCRATCH_PATH:?SCRATCH_PATH}:ro
+      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}
+    environment:
+      - PYTHONPATH=/app
+      - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
+    command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  cleanup_scratch:
+    image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
+    platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
+    pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    entrypoint: ["python", "-m", "engine.delete_run"]
+    volumes:
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
+        target: /policy
+        read_only: true
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
+        target: /app/logs
+      - ${SCRATCH_PATH:?SCRATCH_PATH}:${SCRATCH_PATH:?SCRATCH_PATH}
+    environment:
+      - PYTHONPATH=/app
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy_scratch.yaml
+      - CLEANUP_OPERATION=cleanup_scratch
+    command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  cleanup_archive:
+    image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
+    platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
+    pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    entrypoint: ["python", "-m", "engine.delete_run"]
+    volumes:
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
+        target: /policy
+        read_only: true
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
+        target: /app/logs
+      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}
+    environment:
+      - PYTHONPATH=/app
+      - CLEANUP_POLICY_PATH=/policy/cleanup_policy_archive_drive.yaml
+      - CLEANUP_OPERATION=cleanup_archive
+    command: ["--dry-run", "--log-dir", "/app/logs"]
+
+  visibility:
+    image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
+    platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
+    pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    entrypoint: ["python", "-m", "visibility.api"]
+    volumes:
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
+        target: /app/logs
+        read_only: true
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
+        target: /app/policy
+        read_only: true
+    environment:
+      - PYTHONPATH=/app
+      - SERVER_NAME=${SERVER_NAME:-}
+      - CLIENT_NAME=${CLIENT_NAME:-}
+      - SCRATCH_PATH=${SCRATCH_PATH:-}
+      - ARCHIVE_PATH=${ARCHIVE_PATH:-}
+    command: ["--port", "8080", "--log-dir", "/app/logs"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

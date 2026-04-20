@@ -3,7 +3,7 @@ version: "1.0"
 delete_scope: cleanup_archive
 days_before_delete: 180
 
-# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see .env.example).
+# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see repo .env.example).
 paths:
   - "/wgbs_global2/crick/kpadmanabhan"
 
