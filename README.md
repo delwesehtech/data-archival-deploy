@@ -13,7 +13,7 @@ docker compose --env-file .env -f docker-compose.yml up -d visibility
 
 To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, paths, and labels) in `.env`, then run Compose again from the repo root.
 
-Use `./aliases.sh` from the repo root for shortcuts (`restart_visibility`, dry-run cleanup, etc.).
+Use `./aliases.sh` from the repo root for shortcuts (`archival`, `cleanup_scratch`, `cleanup_archive`, `restart_visibility`, etc.).
 
 This repo intentionally keeps only:
 - one **shared** `docker-compose.yml` at the repo root (same stack for every server)

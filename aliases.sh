@@ -120,6 +120,7 @@ data-archival-deploy — helpers (repo root .env + docker-compose.yml)
 
   cleanup_scratch       Dry-run scratch cleanup (compose default). Logs under $SERVER_DEPLOY_DIR/logs/.
   cleanup_archive       Dry-run archive cleanup (compose service: cleanup_archive).
+  archival              Dry-run archival (scratch → archive; archive_policy.yaml). Logs under $SERVER_DEPLOY_DIR/logs/.
   restart_visibility    Recreate the visibility container only (pick up new image / UI).
   rm_exited_cleanup     Remove exited containers only for this compose project (uses docker compose ps).
   delete_log_files      Remove cleanup audit files: delete_log_files scratch | archive | all (under active server logs/).
@@ -127,6 +128,10 @@ data-archival-deploy — helpers (repo root .env + docker-compose.yml)
   Real deletes (from repo root; same .env as helpers):
     docker compose --env-file .env -f docker-compose.yml run --rm cleanup_scratch --execute --log-dir /app/logs
     docker compose --env-file .env -f docker-compose.yml run --rm cleanup_archive --execute --log-dir /app/logs
+
+  Real archival (copy/move per policy; from repo root):
+    docker compose --env-file .env -f docker-compose.yml run --rm archival --execute --log-dir /app/logs
+    # optional scope: add --scope other_scope (default local_scratch from engine.run)
 
   avd_help              Show this list.
 EOF
@@ -139,6 +144,11 @@ cleanup_scratch() {
 
 cleanup_archive() {
   _avd_docker_compose run --rm cleanup_archive
+}
+
+# Dry-run archival (compose default: --dry-run --log-dir /app/logs). Uses ARCHIVE_POLICY_PATH from compose.
+archival() {
+  _avd_docker_compose run --rm archival
 }
 
 # Remove exited containers only for this compose app (servers/crick).
