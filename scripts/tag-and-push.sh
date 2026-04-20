@@ -4,7 +4,7 @@
 # - Must be on branch main (no tags from dev/feature branches).
 # - Reads repo-root VERSION (e.g. v1.05), computes next (v1.06).
 # - Pushes main to GIT_REMOTE (default: origin), then creates annotated tag ${next},
-#   pushes the tag, and writes VERSION to ${next} locally (commit that file yourself).
+#   pushes the tag (via push-main-and-tag.sh), and writes VERSION to ${next} locally (commit that file yourself).
 #
 # Usage: from repo root, ./scripts/tag-and-push.sh
 # Env: GIT_REMOTE (default origin), VERSION_FILE (default: ./VERSION)
@@ -64,19 +64,7 @@ fi
 
 echo "Current VERSION file: ${current}"
 echo "New tag:              ${next}"
-echo "Pushing branch main to ${GIT_REMOTE} ..."
-if ! git push "${GIT_REMOTE}" main; then
-  echo "tag-and-push.sh: git push ${GIT_REMOTE} main failed; fix and retry." >&2
-  exit 1
-fi
-
-echo "Creating annotated tag ${next} and pushing to ${GIT_REMOTE} ..."
-git tag -a "${next}" -m "Release ${next}"
-if ! git push "${GIT_REMOTE}" "refs/tags/${next}"; then
-  git tag -d "${next}" >/dev/null 2>&1 || true
-  echo "tag-and-push.sh: failed to push tag ${next}; removed local tag." >&2
-  exit 1
-fi
+"${SCRIPT_DIR}/push-main-and-tag.sh" "${next}"
 
 printf "%s\n" "${next}" > "${VERSION_FILE}"
 echo "Updated ${VERSION_FILE} -> ${next}"

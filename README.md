@@ -20,8 +20,8 @@ This repo intentionally keeps only:
 - a single **`.env`** at the repo root next to Compose (gitignored; copy from `.env.example`) — set `SERVER_DEPLOY_DIR` to point at the active server folder
 - per-server folders under `servers/<name>/` with **`policy/`** and **`logs/`** only
 - `.env.example` next to `docker-compose.yml` (tracked template for `.env`)
-- small deploy helper scripts (`aliases.sh`, `scripts/cron-archival.sh`)
-- root `VERSION` (last released deploy tag; used by `scripts/tag-and-push.sh`)
+- small deploy helper scripts (`aliases.sh`, `scripts/cron-archival.sh`, `scripts/release-with-app.sh`, …)
+- root `VERSION` (last released deploy tag; used by release / tag scripts)
 
 Application code and image build logic stay in the `data-archival` repo.
 
@@ -34,28 +34,40 @@ Application code and image build logic stay in the `data-archival` repo.
 
 ## Deploy model
 
-1. Build and push image from `data-archival` tagged as:
-   - `...:<git-sha>`
-   - `...:latest`
-2. Update `IMAGE_TAG=<git-sha>` in the repo root `.env` on that host.
+1. Build and push image from `data-archival` (see **Release** below), tagged with the same semver as **`VERSION`** (e.g. `v1.08`) and usually `:latest`.
+2. Update **`IMAGE_TAG`** in the repo root **`.env`** on each host to that tag (or `:latest` if you track that).
 3. On the server, from this **repo root**, run Compose (see Quick start).
 
-## Release tags (main only)
+## Release (app image + both git tags)
 
-From the **repo root**, on branch **`main`** (merge your work first):
+Use one flow so the **app** image tag and **both** repos’ git tags stay the same semver (do **not** run `tag-and-push.sh` right after `build-and-push.sh` without syncing — it would bump deploy **`VERSION`** again).
+
+**Recommended — from `data-archival-deploy` on `main`:**
+
+```bash
+export DATA_ARCHIVAL_ROOT=/path/to/data-archival   # optional if ../data-archival exists
+./scripts/release-with-app.sh amd64                 # or arm64 / both
+```
+
+This runs **`data-archival/scripts/build-and-push.sh`** (bumps app **`VERSION`**, creates and pushes the **app** git tag, buildx-push **`IMAGE_REPO:${tag}`** and **`:latest`**), copies the new tag into deploy **`VERSION`**, commits **`VERSION`** on deploy **`main`** if it changed, then **`scripts/push-main-and-tag.sh`** to push deploy **`main`** and the **same** annotated tag.
+
+Then **commit and push** the app repo’s **`VERSION`** on **`main`** if you track it (the script prints a reminder).
+
+**Env:** `DATA_ARCHIVAL_ROOT`, `GIT_REMOTE` (default `origin`); **`IMAGE_REPO`** is read by `build-and-push.sh` in the app repo.
+
+### Deploy-only tag bump
+
+If you only need a new **deploy** repo tag (no new image), from the repo root on **`main`**:
 
 ```bash
 ./scripts/tag-and-push.sh
 ```
 
-This script:
+That increments **`VERSION`**, pushes **`main`**, creates the next tag, pushes the tag, then updates **`VERSION`** on disk — **commit** that file if you track it.
 
-1. Refuses to run unless the current branch is **`main`**.
-2. Pushes **`main`** to **`origin`** (override with **`GIT_REMOTE`**).
-3. Reads **`VERSION`** (format **`v1.05`**), creates the next tag (e.g. **`v1.06`**), pushes that tag.
-4. Writes the new value into **`VERSION`** locally — **commit and push** that change to `main` if you want it tracked.
+**Lower-level:** `scripts/push-main-and-tag.sh [v1.08]` pushes **`main`** and creates the annotated tag with **no** bump (used by the scripts above).
 
-If your last git tag is already ahead of **`VERSION`**, edit **`VERSION`** to match before running so the next tag does not collide.
+If your last git tag is already ahead of **`VERSION`**, edit **`VERSION`** to match before running `tag-and-push.sh` so the next tag does not collide.
 
 ## Local helpers (`aliases.sh`)
 
