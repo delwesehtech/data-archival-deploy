@@ -2,12 +2,25 @@
 
 Config-only deployment repo for `data-archival`.
 
+## Quick start
+
+```bash
+cd data-archival-deploy
+cp .env.example .env
+# edit .env: SERVER_DEPLOY_DIR (e.g. servers/crick), COMPOSE_PROJECT_NAME, paths, IMAGE_*, SERVER_NAME, …
+docker compose --env-file .env -f docker-compose.yml up -d visibility
+```
+
+To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, paths, and labels) in `.env`, then run Compose again from the repo root.
+
+Use `./aliases.sh` from the repo root for shortcuts (`restart_visibility`, dry-run cleanup, etc.).
+
 This repo intentionally keeps only:
 - one **shared** `docker-compose.yml` at the repo root (same stack for every server)
 - a single **`.env`** at the repo root next to Compose (gitignored; copy from `.env.example`) — set `SERVER_DEPLOY_DIR` to point at the active server folder
 - per-server folders under `servers/<name>/` with **`policy/`** and **`logs/`** only
 - `.env.example` next to `docker-compose.yml` (tracked template for `.env`)
-- small deploy helper scripts (`aliases.sh`)
+- small deploy helper scripts (`aliases.sh`, `scripts/cron-archival.sh`)
 - root `VERSION` (last released deploy tag; used by `scripts/tag-and-push.sh`)
 
 Application code and image build logic stay in the `data-archival` repo.
@@ -48,23 +61,28 @@ If your last git tag is already ahead of **`VERSION`**, edit **`VERSION`** to ma
 
 From the repo root, run **`./aliases.sh`** (executable). That starts an interactive **bash** with helpers loaded; type **`avd_help`** for the list. Type **`exit`** to leave that shell. To load into your **current** shell instead: `source ./aliases.sh`.
 
-## Quick start
+## Cron (optional)
+
+Cron must run commands from **this repo root** so `--env-file .env` and `docker-compose.yml` resolve. Put `docker` on `PATH` or use absolute paths.
+
+**Scratch cleanup (dry-run scan)** — same as compose defaults:
 
 ```bash
-cd data-archival-deploy
-cp .env.example .env
-# edit .env: SERVER_DEPLOY_DIR (e.g. servers/crick), COMPOSE_PROJECT_NAME, paths, IMAGE_*, SERVER_NAME, …
-docker compose --env-file .env -f docker-compose.yml up -d visibility
+0 3 * * *  cd /path/to/data-archival-deploy && docker compose --env-file .env -f docker-compose.yml run --rm cleanup_scratch
 ```
 
-To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, paths, and labels) in `.env`, then run Compose again from the repo root.
-
-Use `./aliases.sh` from the repo root for shortcuts (`restart_visibility`, dry-run cleanup, etc.).
-
-## Rollback
-
-Edit `.env` and set `IMAGE_TAG` to an older SHA, then from the repo root:
+**Scratch cleanup (execute deletes)** — append CLI args after the service name:
 
 ```bash
-docker compose --env-file .env -f docker-compose.yml up -d --force-recreate visibility
+0 4 * * 0  cd /path/to/data-archival-deploy && docker compose --env-file .env -f docker-compose.yml run --rm cleanup_scratch --execute --log-dir /app/logs
 ```
+
+**Archive drive cleanup** — use service `cleanup_archive` instead of `cleanup_scratch`.
+
+**Archival (scratch → archive)** — wrapper that mirrors the old app-repo script (`ARCHIVAL_EXECUTE`, `ARCHIVAL_SCOPE`):
+
+```bash
+0 2 * * 0  /path/to/data-archival-deploy/scripts/cron-archival.sh >> /path/to/data-archival-deploy/servers/<name>/logs/cron/archival.log 2>&1
+```
+
+There is no in-repo scheduler beyond host cron; add only the jobs you need.

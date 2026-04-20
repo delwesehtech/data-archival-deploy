@@ -21,7 +21,11 @@ file_patterns:
     - "*trim*.clc"
   exclude: []
 
+# Exclusions: same semantics as archive_policy (see data-archival config/schema.yaml).
 exclusions:
+  # Full roots never touched by cleanup. Do not duplicate paths in critical_folders.
   always_exclude_paths: []
+  # Critical folder names or path segments under scan roots; prefer always_exclude_paths for whole excluded trees.
   critical_folders: []
+  # Director-approved holds (dataset id or path substring).
   per_dataset_hold: []
