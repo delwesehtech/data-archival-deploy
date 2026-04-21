@@ -1,17 +1,21 @@
-# Archival policy (watson1)
+# Archival policy (watson1) — archive drive → S3 Glacier.
 version: "1.0"
 
 retention_defaults:
-  days_on_scratch: 180
   days_on_local_archive: 365
+  days_on_scratch: 180
   days_on_cloud_archive: null
 
 data_scope:
-  local_scratch:
-    type: local_scratch
+  archival_aws:
+    type: local_archive
     hosts: [watson1]
-    paths: ["/tmp/wgbs/watson1"]
-    archive_path: "/tmp/wgbs_global2/watson1"
+    paths:
+      - "/tmp/wgbs_global2/watson1"
+    glacier_destination:
+      bucket: REPLACE_WITH_YOUR_GLACIER_ARCHIVE_BUCKET
+      prefix: watson1
+      storage_class: DEEP_ARCHIVE
     file_patterns:
       include:
         - "*.tiff"
@@ -36,11 +40,7 @@ data_scope:
         - "*.rda"
         - "*.RData"
 
-# Exclusions: engine matches path substrings + prefix-under-root (see data-archival config/schema.yaml).
 exclusions:
-  # Full roots never auto-archived/deleted (whole trees, e.g. external mounts). Do not duplicate paths in critical_folders.
   always_exclude_paths: []
-  # Critical-area names or paths that appear inside many files; use always_exclude_paths for whole trees instead when possible.
   critical_folders: []
-  # Director-approved dataset IDs or path fragments (holds); substring match only.
   per_dataset_hold: []

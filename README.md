@@ -91,7 +91,7 @@ Cron must run commands from **this repo root** so `--env-file .env` and `docker-
 
 **Archive drive cleanup** — use service `cleanup_archive` instead of `cleanup_scratch`.
 
-**Archival (scratch → archive)** — wrapper that mirrors the old app-repo script (`ARCHIVAL_EXECUTE`, `ARCHIVAL_SCOPE`):
+**Archival (archive drive → S3 Glacier)** — wrapper (`ARCHIVAL_EXECUTE`, `ARCHIVAL_SCOPE`, default scope `archival_aws`). The `archival` service loads repo-root **`.env`** into the container (`env_file` in `docker-compose.yml`). Set AWS variables in **`.env`** using **`.env.example`** as a guide (see the `AWS` section); alternatively use an IAM role, ECS task role, or a mounted `~/.aws` directory if you extend the compose file.
 
 ```bash
 0 2 * * 0  /path/to/data-archival-deploy/scripts/cron-archival.sh >> /path/to/data-archival-deploy/servers/<name>/logs/cron/archival.log 2>&1
