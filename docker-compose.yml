@@ -10,7 +10,7 @@
 # Three operations per server (separate compose services / policies):
 #   1) cleanup_scratch   — delete old files on scratch (SCRATCH_PATH)
 #   2) cleanup_archive   — delete old files on archive drive (ARCHIVE_PATH)
-#   3) archival          — copy/move data for scratch → archive drive (policy/archive_policy.yaml)
+#   3) archival          — archive drive → AWS S3 Glacier (policy/archive_policy.yaml; glacier_destination)
 #
 # Bind mounts use the same path on host and in the container (SCRATCH_PATH, ARCHIVE_PATH in .env).
 # Policy paths must match those locations.
@@ -33,8 +33,10 @@ services:
       - type: bind
         source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
         target: /app/logs
-      - ${SCRATCH_PATH:?SCRATCH_PATH}:${SCRATCH_PATH:?SCRATCH_PATH}:ro
-      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}
+      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}:ro
+    # Passes variables from repo-root .env into the container (e.g. AWS_* for S3 Glacier uploads).
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/app
       - ARCHIVE_POLICY_PATH=/policy/archive_policy.yaml
