@@ -5,7 +5,7 @@ delete_scope: cleanup_scratch
 days_before_delete: 60
 
 paths:
-  - "wgbs/scratch2/kpadmanabhan"
+  - "/wgbs/scratch2/kpadmanabhan"
 
 file_patterns:
   include:
