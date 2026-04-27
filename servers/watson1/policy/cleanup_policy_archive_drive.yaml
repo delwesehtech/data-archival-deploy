@@ -16,7 +16,7 @@ file_patterns:
     - "*.sam"
     - "*.sam.gz"
     - "*.fastq"
-    - "*.fastq.gz"
+   # - "*.fastq.gz"
     - "*.vdjca"
     - "*trim*.clc"
   exclude: []

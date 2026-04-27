@@ -15,7 +15,7 @@ file_patterns:
     - "*.bai.gz"
     - "*.sam"
     - "*.sam.gz"
-    - "*.fastq"
+    #- "*.fastq"
     #- "*.fastq.gz" this is excluded temporarily . reauested by user
     - "*.vdjca"
     - "*trim*.clc"
