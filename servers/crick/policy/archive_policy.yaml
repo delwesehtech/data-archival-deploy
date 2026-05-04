@@ -2,10 +2,8 @@
 version: "1.0"
 
 retention_defaults:
-  # With glacier_destination, only days_on_local_archive is used (mtime age on the archive drive before upload).
+  # days_on_local_archive: mtime age on the archive drive before upload to S3 Glacier.
   days_on_local_archive: 365
-  days_on_scratch: 180
-  days_on_cloud_archive: null
 
 data_scope:
   archival_aws:
@@ -42,7 +40,14 @@ data_scope:
         - "*.RData"
 
 # Exclusions: engine matches path substrings + prefix-under-root (see data-archival config/schema.yaml).
+# Host paths /share/BeadBarcodeDatabase, /share/Caspio, /share/TileIndexingReportDatabase → relative share/<name> when scan root is above share/.
 exclusions:
-  always_exclude_paths: []
-  critical_folders: []
+  always_exclude_paths:
+    - share/BeadBarcodeDatabase
+    - share/Caspio
+    - share/TileIndexingReportDatabase
+  critical_folders:
+    - BeadBarcodeDatabase
+    - Caspio
+    - TileIndexingReportDatabase
   per_dataset_hold: []

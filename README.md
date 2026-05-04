@@ -27,7 +27,7 @@ Application code and image build logic stay in the `data-archival` repo.
 
 ## Layout
 
-- `docker-compose.yml` — shared services (`archival`, `cleanup_scratch`, `cleanup_archive`, `visibility`)
+- `docker-compose.yml` — shared services (`archival`, `cleanup_scratch`, `cleanup_archive`, `visibility`, `restore`)
 - `.env` (repo root, not tracked) — `SERVER_DEPLOY_DIR`, `COMPOSE_PROJECT_NAME`, image tag, bind-mount paths, UI labels
 - `servers/crick/` — example server: `policy/`, `logs/`
 - `servers/<server>/` — add a folder per host; point root `.env` at it via `SERVER_DEPLOY_DIR`

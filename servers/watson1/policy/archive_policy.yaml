@@ -3,8 +3,6 @@ version: "1.0"
 
 retention_defaults:
   days_on_local_archive: 365
-  days_on_scratch: 180
-  days_on_cloud_archive: null
 
 data_scope:
   archival_aws:
@@ -40,7 +38,14 @@ data_scope:
         - "*.rda"
         - "*.RData"
 
+# Host paths /share/BeadBarcodeDatabase, /share/Caspio, /share/TileIndexingReportDatabase → relative share/<name> when scan root is above share/.
 exclusions:
-  always_exclude_paths: []
-  critical_folders: []
+  always_exclude_paths:
+    - share/BeadBarcodeDatabase
+    - share/Caspio
+    - share/TileIndexingReportDatabase
+  critical_folders:
+    - BeadBarcodeDatabase
+    - Caspio
+    - TileIndexingReportDatabase
   per_dataset_hold: []

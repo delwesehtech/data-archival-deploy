@@ -87,11 +87,14 @@ services:
     platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
     pull_policy: ${COMPOSE_PULL_POLICY:-missing}
     entrypoint: ["python", "-m", "visibility.api"]
+    # Same as archival: Mark for restore calls HeadObject/RestoreObject; boto3 needs AWS_* or profile + creds file.
+    env_file:
+      - .env
     volumes:
+      # Read-write: Mark for restore writes restore_queue/item_state/*.json and download_queue.jsonl.
       - type: bind
         source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
         target: /app/logs
-        read_only: true
       - type: bind
         source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
         target: /app/policy
@@ -106,3 +109,19 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+
+  # One-off: poll S3 and download restored objects (after visibility Mark for restore). Same image as archival.
+  restore:
+    image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
+    platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
+    pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    entrypoint: ["python", "-m", "engine.restore"]
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
+        target: /app/logs
+      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}
+    environment:
+      - PYTHONPATH=/app
