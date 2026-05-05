@@ -1,4 +1,4 @@
-# Archival policy (crick) — scan the archive drive; eligible files upload to S3 Glacier (Deep Archive by default).
+# Archival policy (crick) — scan the archive drive; eligible files upload to S3 Glacier Flexible Retrieval (GLACIER).
 version: "1.0"
 
 retention_defaults:
@@ -14,7 +14,8 @@ data_scope:
     glacier_destination:
       # S3 bucket: set ARCHIVAL_GLACIER_BUCKET in repo-root .env (see data-archival-deploy .env.example).
       prefix: crick
-      storage_class: DEEP_ARCHIVE
+      # GLACIER = S3 Glacier Flexible Retrieval. For Deep Archive use DEEP_ARCHIVE.
+      storage_class: GLACIER
     file_patterns:
       include:
         - "*.tiff"
