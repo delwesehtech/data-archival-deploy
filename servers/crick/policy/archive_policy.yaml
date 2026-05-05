@@ -12,7 +12,7 @@ data_scope:
     paths:
       - "/wgbs_global2/crick/kpadmanabhan"
     glacier_destination:
-      bucket: REPLACE_WITH_YOUR_GLACIER_ARCHIVE_BUCKET
+      # S3 bucket: set ARCHIVAL_GLACIER_BUCKET in repo-root .env (see data-archival-deploy .env.example).
       prefix: crick
       storage_class: DEEP_ARCHIVE
     file_patterns:
