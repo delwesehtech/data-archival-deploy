@@ -5,7 +5,7 @@ delete_scope: cleanup_scratch
 days_before_delete: 60
 
 paths:
-  - "/wgbs/scratch2/hanbunathan"
+  - "/wgbs/scratch2"
 
 file_patterns:
   include:
@@ -15,8 +15,8 @@ file_patterns:
     - "*.bai.gz"
     - "*.sam"
     - "*.sam.gz"
-    #- "*.fastq"
-    #- "*.fastq.gz" this is excluded temporarily . reauested by user
+    - "*.fastq"
+    - "*.fastq.gz"
     - "*.vdjca"
     - "*trim*.clc"
   exclude: []
