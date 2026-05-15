@@ -16,6 +16,8 @@ data_scope:
       prefix: crick
       # GLACIER = S3 Glacier Flexible Retrieval. For Deep Archive use DEEP_ARCHIVE.
       storage_class: GLACIER
+      # After execute: remove local file once S3 upload is confirmed (requires ARCHIVE_PATH rw in compose).
+      delete_source_after_upload: true
     file_patterns:
       include:
         - "*.tiff"

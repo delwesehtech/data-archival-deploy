@@ -25,6 +25,7 @@ services:
     image: ${IMAGE_NAME:?IMAGE_NAME}:${IMAGE_TAG:?IMAGE_TAG}
     platform: ${COMPOSE_DOCKER_PLATFORM:-linux/amd64}
     pull_policy: ${COMPOSE_PULL_POLICY:-missing}
+    entrypoint: ["python", "-m", "engine.run"]
     volumes:
       - type: bind
         source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/policy
@@ -33,7 +34,8 @@ services:
       - type: bind
         source: ${SERVER_DEPLOY_DIR:?SERVER_DEPLOY_DIR}/logs
         target: /app/logs
-      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}:ro
+      # Read-write: execute uploads to S3 then deletes the local source after HeadObject confirms size.
+      - ${ARCHIVE_PATH:?ARCHIVE_PATH}:${ARCHIVE_PATH:?ARCHIVE_PATH}
     # Passes variables from repo-root .env into the container (e.g. AWS_* for S3 Glacier uploads).
     env_file:
       - .env
@@ -101,6 +103,7 @@ services:
         read_only: true
     environment:
       - PYTHONPATH=/app
+      - ARCHIVE_POLICY_PATH=/app/policy/archive_policy.yaml
       - SERVER_NAME=${SERVER_NAME:-}
       - CLIENT_NAME=${CLIENT_NAME:-}
       - SCRATCH_PATH=${SCRATCH_PATH:-}

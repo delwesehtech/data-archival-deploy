@@ -9,12 +9,14 @@ data_scope:
     type: local_archive
     hosts: [watson1]
     paths:
-      - "/tmp/wgbs_global2/watson1"
+      - "/wgbs_global2/watson1"
     glacier_destination:
       # S3 bucket: set ARCHIVAL_GLACIER_BUCKET in repo-root .env (see data-archival-deploy .env.example).
       prefix: watson1
       # GLACIER = S3 Glacier Flexible Retrieval. For Deep Archive use DEEP_ARCHIVE.
       storage_class: GLACIER
+      # After execute: remove local file once S3 upload is confirmed (requires ARCHIVE_PATH rw in compose).
+      delete_source_after_upload: true
     file_patterns:
       include:
         - "*.tiff"

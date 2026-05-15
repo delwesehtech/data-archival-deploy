@@ -105,7 +105,7 @@ Apple Silicon: if .env has no COMPOSE_DOCKER_PLATFORM, helpers default to linux/
 
   download_restored_objects
       After visibility “Mark for restore”: HeadObject poll + download under ARCHIVE_PATH/.restores/.
-      With no args uses --max-wait-seconds 600 --poll-interval 5; or pass your own flags.
+      With no args runs finalize once per queued item (not-ready items stay queued for the next run).
 
   restart_visibility
       Recreate the visibility container (new image / UI).
@@ -128,8 +128,8 @@ Apple Silicon: if .env has no COMPOSE_DOCKER_PLATFORM, helpers default to linux/
   Archive and restore
 
   $ docker compose --env-file .env -f docker-compose.yml run --rm archival --execute --log-dir /app/logs
-  $ docker compose --env-file .env -f docker-compose.yml run --rm restore --log-dir /app/logs --max-wait-seconds 600 --poll-interval 5
-      # after visibility “Mark for restore”; same as download_restored_objects with no args (append flags for custom wait/poll)
+  $ docker compose --env-file .env -f docker-compose.yml run --rm restore --log-dir /app/logs
+      # after visibility “Mark for restore”; same as download_restored_objects (re-run on cron until downloads complete)
 
 Restore: visibility initiates Glacier restore in AWS; run download_restored_objects on a schedule or ad hoc.
 EOF
@@ -152,7 +152,7 @@ archival() {
 # Download restored objects (engine.restore finalize): poll S3 until readable, download under ARCHIVE_PATH/.restores/.
 download_restored_objects() {
   if [[ $# -eq 0 ]]; then
-    _avd_docker_compose run --rm restore --log-dir /app/logs --max-wait-seconds 600 --poll-interval 5
+    _avd_docker_compose run --rm restore --log-dir /app/logs
   else
     _avd_docker_compose run --rm restore --log-dir /app/logs "$@"
   fi

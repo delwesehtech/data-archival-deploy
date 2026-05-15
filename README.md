@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose --env-file .env -f docker-compose.yml up -d visibility
 ```
 
-To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, paths, and labels) in `.env`, then run Compose again from the repo root.
+To target a different server folder on the same machine, change `SERVER_DEPLOY_DIR` (and usually `COMPOSE_PROJECT_NAME`, `SCRATCH_PATH`, `ARCHIVE_PATH`, and labels) in `.env`, then run Compose from the repo root. The shared `docker-compose.yml` mounts `ARCHIVE_PATH` **read-write** for `archival --execute` on every server (upload to S3, then delete the local source after confirm).
 
 Use `./aliases.sh` from the repo root for shortcuts (`archival`, `cleanup_scratch`, `cleanup_archive`, `restart_visibility`, etc.).
 
@@ -29,7 +29,7 @@ Application code and image build logic stay in the `data-archival` repo.
 
 - `docker-compose.yml` — shared services (`archival`, `cleanup_scratch`, `cleanup_archive`, `visibility`, `restore`)
 - `.env` (repo root, not tracked) — `SERVER_DEPLOY_DIR`, `COMPOSE_PROJECT_NAME`, image tag, bind-mount paths, UI labels
-- `servers/crick/` — example server: `policy/`, `logs/`
+- `servers/crick/`, `servers/watson1/`, `servers/dev/` — `policy/`, `logs/`
 - `servers/<server>/` — add a folder per host; point root `.env` at it via `SERVER_DEPLOY_DIR`
 
 ## Deploy model
