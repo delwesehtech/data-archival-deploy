@@ -1,7 +1,7 @@
 version: "1.0"
 
 delete_scope: cleanup_archive
-days_before_delete: 180
+days_before_delete: 240
 
 # Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see repo .env.example).
 paths:

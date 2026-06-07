@@ -2,7 +2,7 @@
 version: "1.0"
 
 retention_defaults:
-  days_on_local_archive: 365
+  days_on_local_archive: 180
 
 data_scope:
   archival_aws:
