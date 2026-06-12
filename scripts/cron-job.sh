@@ -2,13 +2,6 @@
 
 ###############################################################################
 # cleanup.sh
-#
-# Runs a Docker Compose cleanup job only when a filesystem exceeds a specified
-# utilization threshold.
-#
-# Assumption:
-#   This script lives inside a repo folder (e.g. repo/scripts/cleanup.sh)
-#   and docker-compose.yml is located one directory above it (repo root).
 ###############################################################################
 
 usage() {
@@ -17,36 +10,15 @@ Usage:
   $(basename "$0") --job JOB_NAME --mount PATH [OPTIONS]
 
 Description:
-  Checks disk utilization for a mount point and runs the specified Docker
-  Compose cleanup job only when utilization meets or exceeds the threshold.
+  Runs a Docker Compose cleanup job only when disk usage exceeds threshold.
 
 Required:
   --job JOB_NAME
-      Docker Compose service/job to execute.
-
   --mount PATH
-      Mount point to monitor.
 
 Optional:
-  --threshold PERCENT
-      Disk utilization percentage that triggers cleanup.
-      Default: 90
-
-  --log-file FILE
-      Log file location.
-      Default: <script directory>/archive-cleanup.log
-
+  --threshold PERCENT   Default: 90
   -h, --help
-      Display this help message.
-
-Examples:
-
-  $(basename "$0") --job cleanup_archive --mount /data
-
-  $(basename "$0") --job cleanup_logs --mount /data --threshold 95
-
-  $(basename "$0") --job cleanup_archive --mount /mnt/archive
-
 EOF
 }
 
@@ -62,13 +34,12 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 ###############################################################################
 
 THRESHOLD=90
-LOG_FILE="$SCRIPT_DIR/archive-cleanup.log"
-
 CLEANUP_JOB=""
 MOUNT_POINT=""
+LOG_FILE=""
 
 ###############################################################################
-# Parse Arguments
+# Parse arguments
 ###############################################################################
 
 while [[ $# -gt 0 ]]; do
@@ -85,17 +56,12 @@ while [[ $# -gt 0 ]]; do
             THRESHOLD="$2"
             shift 2
             ;;
-        --log-file)
-            LOG_FILE="$2"
-            shift 2
-            ;;
         -h|--help)
             usage
             exit 0
             ;;
         *)
-            echo "ERROR: Unknown option '$1'"
-            echo
+            echo "ERROR: Unknown option $1"
             usage
             exit 1
             ;;
@@ -103,41 +69,36 @@ while [[ $# -gt 0 ]]; do
 done
 
 ###############################################################################
-# Validate Inputs
+# Validate inputs
 ###############################################################################
 
 if [ -z "$CLEANUP_JOB" ]; then
     echo "ERROR: --job is required"
-    echo
     usage
     exit 1
 fi
 
 if [ -z "$MOUNT_POINT" ]; then
     echo "ERROR: --mount is required"
-    echo
     usage
     exit 1
 fi
 
 if ! [[ "$THRESHOLD" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: Threshold must be an integer."
-    exit 1
-fi
-
-if [ ! -d "$MOUNT_POINT" ]; then
-    echo "ERROR: Mount point '$MOUNT_POINT' does not exist."
+    echo "ERROR: threshold must be integer"
     exit 1
 fi
 
 ###############################################################################
-# Ensure log directory exists
+# Log file derived from job name
 ###############################################################################
+
+LOG_FILE="$SCRIPT_DIR/${CLEANUP_JOB}.log"
 
 mkdir -p "$(dirname "$LOG_FILE")"
 
 ###############################################################################
-# Get Disk Usage
+# Disk usage
 ###############################################################################
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -146,26 +107,20 @@ USAGE=$(df -P "$MOUNT_POINT" 2>/dev/null | \
         awk 'NR==2 {gsub("%","",$5); print $5}')
 
 if [ -z "$USAGE" ]; then
-    echo "[$TIMESTAMP] ERROR: Unable to determine disk usage for $MOUNT_POINT" \
-        >> "$LOG_FILE"
+    echo "[$TIMESTAMP] ERROR: cannot read disk usage for $MOUNT_POINT" >> "$LOG_FILE"
     exit 1
 fi
 
-###############################################################################
-# Log Status
-###############################################################################
-
-echo "[$TIMESTAMP] Job=$CLEANUP_JOB Repo=$REPO_ROOT Mount=$MOUNT_POINT Usage=${USAGE}% Threshold=${THRESHOLD}%" \
+echo "[$TIMESTAMP] job=$CLEANUP_JOB repo=$REPO_ROOT mount=$MOUNT_POINT usage=${USAGE}% threshold=${THRESHOLD}%" \
     >> "$LOG_FILE"
 
 ###############################################################################
-# Run Cleanup If Threshold Met
+# Run job
 ###############################################################################
 
 if [ "$USAGE" -ge "$THRESHOLD" ]; then
 
-    echo "[$TIMESTAMP] Threshold met. Starting cleanup job '$CLEANUP_JOB'." \
-        >> "$LOG_FILE"
+    echo "[$TIMESTAMP] threshold met, running $CLEANUP_JOB" >> "$LOG_FILE"
 
     (
         cd "$REPO_ROOT" || exit 1
@@ -178,16 +133,11 @@ if [ "$USAGE" -ge "$THRESHOLD" ]; then
 
     EXIT_CODE=$?
 
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleanup job '$CLEANUP_JOB' completed with exit code $EXIT_CODE." \
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] job=$CLEANUP_JOB finished exit_code=$EXIT_CODE" \
         >> "$LOG_FILE"
 
 else
-
-    echo "[$TIMESTAMP] Usage ${USAGE}% is below threshold ${THRESHOLD}%. Cleanup skipped." \
-        >> "$LOG_FILE"
-
+    echo "[$TIMESTAMP] below threshold, skipping" >> "$LOG_FILE"
 fi
 
-echo "-------------------------------------------------------------------" >> "$LOG_FILE"
-
-exit 0
+echo "------------------------------------------------------------" >> "$LOG_FILE"
