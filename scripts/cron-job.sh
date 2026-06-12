@@ -7,18 +7,33 @@
 usage() {
 cat << EOF
 Usage:
-  $(basename "$0") --job JOB_NAME --mount PATH [OPTIONS]
+  $(basename "$0") --job JOB_NAME --check-drive PATH [OPTIONS]
 
 Description:
-  Runs a Docker Compose cleanup job only when disk usage exceeds threshold.
+  Runs a Docker Compose cleanup job only when disk usage of the specified
+  filesystem path exceeds the configured threshold.
 
 Required:
   --job JOB_NAME
-  --mount PATH
+      Docker Compose service/job to execute.
+
+  --check-drive PATH
+      Filesystem path used ONLY to check disk usage.
 
 Optional:
-  --threshold PERCENT   Default: 90
+  --threshold PERCENT
+      Disk usage percentage that triggers cleanup.
+      Default: 90
+
   -h, --help
+      Show this help message.
+
+Examples:
+
+  $(basename "$0") --job cleanup_archive --check-drive /data
+
+  $(basename "$0") --job cleanup_logs --check-drive /mnt/archive --threshold 95
+
 EOF
 }
 
@@ -35,7 +50,7 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 THRESHOLD=90
 CLEANUP_JOB=""
-MOUNT_POINT=""
+CHECK_DRIVE=""
 LOG_FILE=""
 
 ###############################################################################
@@ -48,8 +63,8 @@ while [[ $# -gt 0 ]]; do
             CLEANUP_JOB="$2"
             shift 2
             ;;
-        --mount)
-            MOUNT_POINT="$2"
+        --check-drive)
+            CHECK_DRIVE="$2"
             shift 2
             ;;
         --threshold)
@@ -78,8 +93,8 @@ if [ -z "$CLEANUP_JOB" ]; then
     exit 1
 fi
 
-if [ -z "$MOUNT_POINT" ]; then
-    echo "ERROR: --mount is required"
+if [ -z "$CHECK_DRIVE" ]; then
+    echo "ERROR: --check-drive is required"
     usage
     exit 1
 fi
@@ -90,32 +105,31 @@ if ! [[ "$THRESHOLD" =~ ^[0-9]+$ ]]; then
 fi
 
 ###############################################################################
-# Log file derived from job name
+# Log file per job
 ###############################################################################
 
 LOG_FILE="$SCRIPT_DIR/${CLEANUP_JOB}.log"
-
 mkdir -p "$(dirname "$LOG_FILE")"
 
 ###############################################################################
-# Disk usage
+# Disk usage check
 ###############################################################################
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-USAGE=$(df -P "$MOUNT_POINT" 2>/dev/null | \
+USAGE=$(df -P "$CHECK_DRIVE" 2>/dev/null | \
         awk 'NR==2 {gsub("%","",$5); print $5}')
 
 if [ -z "$USAGE" ]; then
-    echo "[$TIMESTAMP] ERROR: cannot read disk usage for $MOUNT_POINT" >> "$LOG_FILE"
+    echo "[$TIMESTAMP] ERROR: cannot read disk usage for $CHECK_DRIVE" >> "$LOG_FILE"
     exit 1
 fi
 
-echo "[$TIMESTAMP] job=$CLEANUP_JOB repo=$REPO_ROOT mount=$MOUNT_POINT usage=${USAGE}% threshold=${THRESHOLD}%" \
+echo "[$TIMESTAMP] job=$CLEANUP_JOB repo=$REPO_ROOT drive=$CHECK_DRIVE usage=${USAGE}% threshold=${THRESHOLD}%" \
     >> "$LOG_FILE"
 
 ###############################################################################
-# Run job
+# Execute job
 ###############################################################################
 
 if [ "$USAGE" -ge "$THRESHOLD" ]; then
@@ -133,11 +147,11 @@ if [ "$USAGE" -ge "$THRESHOLD" ]; then
 
     EXIT_CODE=$?
 
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] job=$CLEANUP_JOB finished exit_code=$EXIT_CODE" \
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] job=$CLEANUP_JOB exit_code=$EXIT_CODE" \
         >> "$LOG_FILE"
 
 else
-    echo "[$TIMESTAMP] below threshold, skipping" >> "$LOG_FILE"
+    echo "[$TIMESTAMP] below threshold, skipping execution" >> "$LOG_FILE"
 fi
 
 echo "------------------------------------------------------------" >> "$LOG_FILE"
