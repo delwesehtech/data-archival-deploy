@@ -1,0 +1,54 @@
+# Archival policy (dev) — archive drive → S3 Glacier.
+version: "1.0"
+
+retention_defaults:
+  days_on_local_archive: 365
+
+data_scope:
+  archival_aws:
+    type: local_archive
+    hosts: [dev]
+    paths:
+      - "/tmp/wgbs_global2/dev"
+    glacier_destination:
+      # S3 bucket: set ARCHIVAL_GLACIER_BUCKET in repo-root .env (see data-archival-deploy .env.example).
+      prefix: dev
+      # GLACIER = S3 Glacier Flexible Retrieval (Expedited / Standard / Bulk restore). For Deep Archive use DEEP_ARCHIVE.
+      storage_class: GLACIER
+      # After execute: remove local file once S3 upload is confirmed (requires ARCHIVE_PATH rw in compose).
+      delete_source_after_upload: true
+    file_patterns:
+      include:
+        - "*.tiff"
+        - "*.bcl"
+        - "*.fastq"
+        - "*.fastq.gz"
+        - "*.fast5"
+        - "*.pod5"
+        - "*.clc"
+        - "*.bam"
+        - "*.bai"
+        - "*.sam"
+        - "*.vdjca"
+        - "*.gz"
+        - "*.bgzf"
+      exclude:
+        - "*.xlsx"
+        - "*.csv"
+        - "*.pdf"
+        - "*.html"
+        - "*.rds"
+        - "*.rda"
+        - "*.RData"
+
+# Host paths /share/BeadBarcodeDatabase, /share/Caspio, /share/TileIndexingReportDatabase → relative share/<name> when scan root is above share/.
+exclusions:
+  always_exclude_paths:
+    - share/BeadBarcodeDatabase
+    - share/Caspio
+    - share/TileIndexingReportDatabase
+  critical_folders:
+    - BeadBarcodeDatabase
+    - Caspio
+    - TileIndexingReportDatabase
+  per_dataset_hold: []

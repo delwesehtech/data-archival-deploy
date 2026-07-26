@@ -1,0 +1,37 @@
+version: "1.0"
+
+delete_scope: cleanup_archive
+days_before_delete: 180
+
+# Paths must exist inside the container; with 1:1 mounts they match ARCHIVE_PATH in .env (see repo .env.example).
+paths:
+  # Must exist on the host under ARCHIVE_PATH in .env (here: /tmp/wgbs_global2/dev/...).
+  - "/tmp/wgbs_global2/dev"
+
+file_patterns:
+  include:
+    - "*.bam"
+    - "*.bam.gz"
+    - "*.bai"
+    - "*.bai.gz"
+    - "*.sam"
+    - "*.sam.gz"
+    - "*.fastq"
+    - "*.fastq.gz"
+    - "*.vdjca"
+    - "*trim*.clc"
+  exclude: []
+
+# Exclusions: same semantics as archive_policy (see data-archival config/schema.yaml).
+# Host paths /share/BeadBarcodeDatabase, /share/Caspio, /share/TileIndexingReportDatabase → relative share/<name> when scan root is above share/.
+exclusions:
+  always_exclude_paths:
+    - share/BeadBarcodeDatabase
+    - share/Caspio
+    - share/TileIndexingReportDatabase
+  critical_folders:
+    - BeadBarcodeDatabase
+    - Caspio
+    - TileIndexingReportDatabase
+  # Director-approved holds (dataset id or path substring).
+  per_dataset_hold: []
